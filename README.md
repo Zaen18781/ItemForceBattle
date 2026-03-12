@@ -76,10 +76,8 @@ Ein Minecraft Paper Plugin für das Item Force Battle Event, inspiriert von Bast
 colors:
   primary: "<#478ED2>"    # Blau
   secondary: "<#6953B5>"  # Lila
+  warnings: "<#FFD700>"     #yellow
   success: "<#00EE39>"    # Grün
   error: "<#ff0000>"      # Rot
 ```
 
-## 📝 Lizenz
-
-Dieses Plugin wurde von Claude (Anthropic) erstellt.
