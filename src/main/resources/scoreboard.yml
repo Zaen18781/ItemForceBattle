@@ -1,0 +1,34 @@
+# ============================================
+#   BetterItemForceBattle - Scoreboard Config
+# ============================================
+
+scoreboard:
+  # Scoreboard aktivieren/deaktivieren
+  enabled: true
+
+  # Titel des Scoreboards (HEX Farben erlaubt)
+  title: "<#478ED2><bold>Item Force Battle"
+
+  # SmallCaps fuer alle Texte aktivieren
+  # Konvertiert Text zu kleinen Grossbuchstaben (z.B. "Test" -> "ᴛᴇsᴛ")
+  small-caps: true
+
+  # Anzahl der Spieler ueber/unter dem eigenen Rang
+  players-around: 3
+
+  # Eigene Zeile hervorheben
+  highlight-own: true
+  highlight-color: "<#00EE39>"
+
+  # Anzeige-Optionen
+  show-time: true
+  show-points: true
+  show-skips: true
+
+  # Benutzerdefinierte Zeilen am Ende des Scoreboards
+  # Platzhalter: {player}, {points}, {rank}, {time}
+  custom-lines: []
+  # Beispiel:
+  # custom-lines:
+  #   - ""
+  #   - "<#478ED2>play.deinserver.de"

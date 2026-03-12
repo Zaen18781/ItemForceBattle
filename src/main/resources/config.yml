@@ -1,0 +1,69 @@
+# BetterItemForceBattle - Konfiguration
+
+colors:
+  primary: "<#478ED2>"
+  secondary: "<#6953B5>"
+  success: "<#00EE39>"
+  error: "<#ff0000>"
+
+event:
+  duration: 60
+  skips: 5
+  countdown: 5
+  end-border-radius: 10
+
+spawn:
+  world: "world"
+  x: 0.0
+  y: 64.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+
+starter-items:
+  pickaxe:
+    enabled: true
+    slot: 0
+    material: DIAMOND_PICKAXE
+    unbreakable: true
+    enchantments:
+      - "SILK_TOUCH:1"
+    display-name: "<#478ED2>Starter Pickaxe"
+  food:
+    enabled: true
+    slot: 7
+    material: GOLDEN_CARROT
+    amount: 64
+    display-name: "<#FFD700>Goldene Karotten"
+
+display:
+  height-above-head: 1.0
+  actionbar-format: "<#478ED2>🎯 {item} <#6953B5>| <#478ED2>⏱ {time} <#6953B5>| <#00EE39>🏆 {points} Punkte"
+
+sounds:
+  enabled: true
+  countdown-tick: "BLOCK_NOTE_BLOCK_PLING"
+  countdown-go: "ENTITY_ENDER_DRAGON_GROWL"
+  item-collected: "ENTITY_PLAYER_LEVELUP"
+  skip-used: "ENTITY_VILLAGER_NO"
+  event-end: "UI_TOAST_CHALLENGE_COMPLETE"
+
+messages:
+  prefix: "<#478ED2>[<#6953B5>ItemForce<#478ED2>] "
+  event-started: "<#00EE39>Das Item Force Battle hat begonnen!"
+  event-stopped: "<#ff0000>Das Event wurde beendet!"
+  event-ended: "<#00EE39>Das Event ist vorbei! Hier sind die Ergebnisse:"
+  countdown: "<#478ED2>Start in <#00EE39>{seconds} <#478ED2>Sekunden..."
+  countdown-go: "<#00EE39><bold>LOS GEHT'S!"
+  new-item: "<#478ED2>Dein neues Item: <#00EE39>{item}"
+  item-collected: "<#00EE39>Du hast <#478ED2>{item} <#00EE39>gesammelt! <#6953B5>(+1 Punkt)"
+  skip-used: "<#6953B5>Du hast <#478ED2>{item} <#6953B5>geskippt! <#ff0000>({remaining} Skips übrig)"
+  no-skips-left: "<#ff0000>Du hast keine Skips mehr übrig!"
+  no-permission: "<#ff0000>Du hast keine Berechtigung für diesen Befehl!"
+  event-not-running: "<#ff0000>Es läuft gerade kein Event!"
+  event-already-running: "<#ff0000>Es läuft bereits ein Event!"
+  spawn-not-set: "<#ff0000>Der Spawn wurde noch nicht gesetzt! Nutze /itemforce setspawn"
+  spawn-set: "<#00EE39>Spawn wurde gesetzt!"
+  leaderboard-header: "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  leaderboard-entry: "<#6953B5>{rank}. <#478ED2>{player} <#6953B5>- <#00EE39>{points} Punkte"
+  leaderboard-footer: "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

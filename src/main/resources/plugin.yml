@@ -1,0 +1,24 @@
+name: BetterItemForceBattle
+version: '1.0.0'
+main: dev.zaen.itemforcebattle.BetterItemForceBattle
+api-version: '1.21'
+authors:
+  - Claude
+description: Ein Item Force Battle Plugin inspiriert von BastiGHG
+
+commands:
+  itemforce:
+    description: Hauptcommand für ItemForceBattle
+    usage: /<command> <start|stop|setspawn|reload>
+    aliases: [if, ifb]
+  skip:
+    description: Überspringe dein aktuelles Item
+    usage: /<command>
+
+permissions:
+  itemforce.admin:
+    description: Erlaubt alle Admin-Befehle
+    default: op
+  itemforce.play:
+    description: Erlaubt Spieler-Befehle (skip)
+    default: true
