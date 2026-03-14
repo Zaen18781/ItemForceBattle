@@ -13,36 +13,21 @@ java {
 repositories {
     mavenCentral()
     maven { url 'https://repo.papermc.io/repository/maven-public/' }
-    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     maven { url 'https://jitpack.io' }
     maven { url 'https://repo.codemc.io/repository/maven-releases/' }
-    maven { url 'https://repo.panda-lang.org/releases' }
 }
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
-    compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
-    compileOnly 'me.clip:placeholderapi:2.11.6'
-    compileOnly 'net.luckperms:api:5.4'
-    implementation 'com.zaxxer:HikariCP:5.1.0'
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     implementation 'dev.triumphteam:triumph-gui:3.1.12'
-    implementation 'fr.mrmicky:fastboard:2.1.5'
     implementation 'com.github.cryptomorin:XSeries:13.0.0'
-    implementation 'de.exlll:configlib-paper:4.5.0'
 }
 
 shadowJar {
     archiveClassifier.set('')
-    relocate 'com.zaxxer.hikari', 'dev.zaen.itemforcebattle.libs.hikari'
-    relocate 'com.github.benmanes.caffeine', 'dev.zaen.itemforcebattle.libs.caffeine'
     relocate 'dev.triumphteam.gui', 'dev.zaen.itemforcebattle.libs.gui'
-    relocate 'fr.mrmicky.fastboard', 'dev.zaen.itemforcebattle.libs.fastboard'
     relocate 'com.cryptomorin.xseries', 'dev.zaen.itemforcebattle.libs.xseries'
-    relocate 'de.exlll.configlib', 'dev.zaen.itemforcebattle.libs.configlib'
-    minimize {
-        exclude(dependency('com.github.ben-manes.caffeine:.*'))
-    }
+    minimize()
 }
 
 processResources {

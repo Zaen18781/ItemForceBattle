@@ -1,0 +1,33 @@
+player-head:
+  name: "<#478ED2>{player}"
+  lore:
+    - ""
+    - "<white>ᴘʟᴀᴛᴢɪᴇʀᴜɴɢ: <#FFD700>#{rank}"
+    - "<white>ᴘᴜɴᴋᴛᴇ: <#FFD700>{points}"
+    - ""
+    - "<dark_gray>« <gray>ʟɪɴᴋsᴋʟɪᴄᴋ <#478ED2>→ <white>ᴛᴇʟᴇᴘᴏʀᴛ"
+    - ""
+
+top-player-head:
+  name: "<#FFD700>🏆 {player}"
+  lore:
+    - ""
+    - "<#478ED2><b>ᴛᴏᴘ ꜱᴘɪᴇʟᴇʀ</b>"
+    - "<#478ED2>ᴘᴜɴᴋᴛᴇ: <#FFD700>{points}"
+    - ""
+    - "<dark_gray>« <gray>ʟɪɴᴋsᴋʟɪᴄᴋ <#478ED2>→ <white>ᴛᴇʟᴇᴘᴏʀᴛ"
+    - ""
+
+pagination:
+  previous-page:
+    material: RED_CANDLE
+    amount: 1
+    name: "<dark_gray>« <#478ED2>ᴠᴏʀʜᴇʀɪɢᴇ sᴇɪᴛᴇ"
+  next-page:
+    material: RED_CANDLE
+    amount: 1
+    name: "<#478ED2>ɴäᴄʜsᴛᴇ sᴇɪᴛᴇ <dark_gray>»"
+
+filler:
+  material: BLACK_STAINED_GLASS_PANE
+  name: " "
