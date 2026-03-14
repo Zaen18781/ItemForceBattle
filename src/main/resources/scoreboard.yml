@@ -1,34 +1,28 @@
-# ============================================
-#   BetterItemForceBattle - Scoreboard Config
-# ============================================
+enabled: true
 
 scoreboard:
-  # Scoreboard aktivieren/deaktivieren
-  enabled: true
-
-  # Titel des Scoreboards (HEX Farben erlaubt)
-  title: "<#478ED2><bold>Item Force Battle"
-
-  # SmallCaps fuer alle Texte aktivieren
-  # Konvertiert Text zu kleinen Grossbuchstaben (z.B. "Test" -> "ᴛᴇsᴛ")
+  toggle-command: sb
+  remember-toggle-choice: false
+  hidden-by-default: false
+  delay-on-join-milliseconds: 0
+  text-shadow: true
   small-caps: true
 
-  # Anzahl der Spieler ueber/unter dem eigenen Rang
-  players-around: 3
-
-  # Eigene Zeile hervorheben
-  highlight-own: true
-  highlight-color: "<#00EE39>"
-
-  # Anzeige-Optionen
-  show-time: true
-  show-points: true
-  show-skips: true
-
-  # Benutzerdefinierte Zeilen am Ende des Scoreboards
-  # Platzhalter: {player}, {points}, {rank}, {time}
-  custom-lines: []
-  # Beispiel:
-  # custom-lines:
-  #   - ""
-  #   - "<#478ED2>play.deinserver.de"
+  scoreboards:
+    default:
+      title: "<b><color:#478ED2>ɪᴛᴇᴍꜰᴏʀᴄᴇ</color></b>"
+      lines:
+        - "<#478ED2>●&m                                  &r<#478ED2>●"
+        - "<b><color:#478ED2>ᴛᴏᴘ ꜱᴘɪᴇʟᴇʀ</color></b>"
+        - ""
+        - "#1"
+        - "#2"
+        - "#3"
+        - "#4"
+        - "#5"
+        - ""
+        - "<b><#478ED2>ꜱᴛᴀᴛꜱ</b>"
+        - "<#478ED2><b>▎</b> <#B1B1B1>ᴢᴇɪᴛ: <#FFD700>%time%"
+        - "<#478ED2><b>▎</b> <#B1B1B1>ᴘᴜɴᴋᴛᴇ: <#FFD700>%points%"
+        - "<#478ED2>●&m                                  &r<#478ED2>●"
+        - " <gray>⛏ <b><#478ED2>ʙᴇᴛᴛᴇʀᴀᴛᴛᴀᴄᴋ.ɴᴇᴛ</b><gray>⛏"

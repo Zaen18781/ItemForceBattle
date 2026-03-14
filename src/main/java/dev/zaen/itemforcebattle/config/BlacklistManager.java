@@ -11,120 +11,80 @@ import java.util.*;
 public class BlacklistManager {
 
     private final BetterItemForceBattle plugin;
-    private File blacklistFile;
-    private FileConfiguration blacklistConfig;
-    
-    private Set<Material> blacklistedMaterials;
-    private Set<String> blacklistedCategories;
-    private List<Material> availableItems;
+    private final Random random = new Random();
+    private File whitelistFile;
+    private FileConfiguration whitelistConfig;
+    private List<Material> whitelistedItems;
+    private Map<UUID, Set<Material>> playerCollectedItems;
 
     public BlacklistManager(BetterItemForceBattle plugin) {
         this.plugin = plugin;
-        this.blacklistedMaterials = new HashSet<>();
-        this.blacklistedCategories = new HashSet<>();
-        this.availableItems = new ArrayList<>();
+        this.whitelistedItems = new ArrayList<>();
+        this.playerCollectedItems = new HashMap<>();
         reload();
     }
 
     public void reload() {
-        blacklistFile = new File(plugin.getDataFolder(), "blacklist.yml");
-        if (!blacklistFile.exists()) {
-            plugin.saveResource("blacklist.yml", false);
-        }
-        
-        blacklistConfig = YamlConfiguration.loadConfiguration(blacklistFile);
-        
-        loadBlacklist();
-        buildAvailableItems();
+        whitelistFile = new File(plugin.getDataFolder(), "whitelist.yml");
+        if (!whitelistFile.exists()) plugin.saveResource("whitelist.yml", false);
+        whitelistConfig = YamlConfiguration.loadConfiguration(whitelistFile);
+        loadWhitelist();
     }
 
-    private void loadBlacklist() {
-        blacklistedMaterials.clear();
-        blacklistedCategories.clear();
-
-        // Kategorien laden
-        List<String> categories = blacklistConfig.getStringList("blacklisted-categories");
-        for (String category : categories) {
-            blacklistedCategories.add(category.toUpperCase());
-        }
-
-        // Einzelne Items laden
-        List<String> items = blacklistConfig.getStringList("blacklisted-items");
-        for (String itemName : items) {
+    private void loadWhitelist() {
+        whitelistedItems.clear();
+        for (String itemName : whitelistConfig.getStringList("whitelist")) {
             try {
                 Material material = Material.valueOf(itemName.toUpperCase());
-                blacklistedMaterials.add(material);
-            } catch (IllegalArgumentException e) {
-                // Material existiert nicht, ignorieren
-            }
+                if (material.isItem()) whitelistedItems.add(material);
+            } catch (IllegalArgumentException ignored) {}
         }
+        plugin.getLogger().info("Whitelisted items loaded: " + whitelistedItems.size());
     }
 
-    private void buildAvailableItems() {
-        availableItems.clear();
-
-        for (Material material : Material.values()) {
-            // Nur Items, keine Blöcke ohne Item-Form
-            if (!material.isItem()) continue;
-            
-            // Luft und Legacy ausschließen
-            if (material.isAir() || material.isLegacy()) continue;
-            
-            // Direkt geblacklistet
-            if (blacklistedMaterials.contains(material)) continue;
-            
-            // Kategorie geblacklistet
-            if (isInBlacklistedCategory(material)) continue;
-            
-            availableItems.add(material);
+    public Material getRandomItem(UUID playerUuid) {
+        Set<Material> collected = playerCollectedItems.getOrDefault(playerUuid, Collections.emptySet());
+        List<Material> available = new ArrayList<>(whitelistedItems.size());
+        for (Material material : whitelistedItems) {
+            if (!collected.contains(material)) available.add(material);
         }
-
-        plugin.getLogger().info("Verfügbare Items: " + availableItems.size());
+        if (available.isEmpty()) available.addAll(whitelistedItems);
+        if (available.isEmpty()) {
+            plugin.getLogger().severe("No available items in whitelist!");
+            return Material.STONE;
+        }
+        return available.get(random.nextInt(available.size()));
     }
 
-    private boolean isInBlacklistedCategory(Material material) {
-        String name = material.name();
-        
-        for (String category : blacklistedCategories) {
-            if (name.contains(category)) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-    /**
-     * Gibt ein zufälliges verfügbares Item zurück
-     */
     public Material getRandomItem() {
-        if (availableItems.isEmpty()) {
-            plugin.getLogger().severe("Keine verfügbaren Items! Überprüfe die Blacklist.");
-            return Material.STONE; // Fallback
+        if (whitelistedItems.isEmpty()) {
+            plugin.getLogger().severe("No items in whitelist!");
+            return Material.STONE;
         }
-        
-        Random random = new Random();
-        return availableItems.get(random.nextInt(availableItems.size()));
+        return whitelistedItems.get(random.nextInt(whitelistedItems.size()));
     }
 
-    /**
-     * Prüft ob ein Material verfügbar (nicht geblacklistet) ist
-     */
+    public void markCollected(UUID playerUuid, Material material) {
+        playerCollectedItems.computeIfAbsent(playerUuid, k -> new HashSet<>()).add(material);
+    }
+
+    public void clearCollectedItems(UUID playerUuid) {
+        playerCollectedItems.remove(playerUuid);
+    }
+
+    public void clearAllCollectedItems() {
+        playerCollectedItems.clear();
+    }
+
     public boolean isAvailable(Material material) {
-        return availableItems.contains(material);
+        return whitelistedItems.contains(material);
     }
 
-    /**
-     * Gibt die Anzahl der verfügbaren Items zurück
-     */
     public int getAvailableItemCount() {
-        return availableItems.size();
+        return whitelistedItems.size();
     }
 
-    /**
-     * Gibt alle verfügbaren Items zurück
-     */
     public List<Material> getAvailableItems() {
-        return new ArrayList<>(availableItems);
+        return new ArrayList<>(whitelistedItems);
     }
 }

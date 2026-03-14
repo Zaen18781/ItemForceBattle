@@ -1,17 +1,20 @@
 package dev.zaen.itemforcebattle.config;
 
 import dev.zaen.itemforcebattle.BetterItemForceBattle;
+import dev.zaen.itemforcebattle.utils.ColorUtils;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import dev.zaen.itemforcebattle.utils.ColorUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,26 +24,24 @@ public class ConfigManager {
     private final BetterItemForceBattle plugin;
     private FileConfiguration config;
 
-    // Farben
     private String colorPrimary;
     private String colorSecondary;
     private String colorSuccess;
     private String colorError;
 
-    // Event Einstellungen
     private int eventDuration;
     private int skipsPerPlayer;
     private int countdownTime;
     private int endBorderRadius;
 
-    // Spawn
     private Location spawnLocation;
 
-    // Display
-    private double heightAboveHead;
-    private String actionbarFormat;
+    private boolean displayEnabled;
+    private double displayHeight;
+    private float displayScale;
+    private String displayBillboard;
+    private int displayViewRange;
 
-    // Sounds
     private boolean soundsEnabled;
     private Sound countdownTick;
     private Sound countdownGo;
@@ -48,7 +49,6 @@ public class ConfigManager {
     private Sound skipUsed;
     private Sound eventEnd;
 
-    // Starter Items
     private Map<Integer, ItemStack> starterItems;
 
     public ConfigManager(BetterItemForceBattle plugin) {
@@ -61,35 +61,31 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
 
-        // Farben laden
         colorPrimary = config.getString("colors.primary", "<#478ED2>");
         colorSecondary = config.getString("colors.secondary", "<#6953B5>");
         colorSuccess = config.getString("colors.success", "<#00EE39>");
         colorError = config.getString("colors.error", "<#ff0000>");
 
-        // Event Einstellungen
         eventDuration = config.getInt("event.duration", 60);
         skipsPerPlayer = config.getInt("event.skips", 5);
         countdownTime = config.getInt("event.countdown", 5);
         endBorderRadius = config.getInt("event.end-border-radius", 10);
 
-        // Spawn
         loadSpawnLocation();
 
-        // Display
-        heightAboveHead = config.getDouble("display.height-above-head", 1.0);
-        actionbarFormat = config.getString("display.actionbar-format", 
-            "<#478ED2>🎯 {item} <#6953B5>| <#478ED2>⏱ {time} <#6953B5>| <#00EE39>🏆 {points} Punkte");
+        displayEnabled = config.getBoolean("display.enabled", true);
+        displayHeight = config.getDouble("display.height-above-head", 0.3);
+        displayScale = (float) config.getDouble("display.scale", 0.6);
+        displayBillboard = config.getString("display.billboard", "CENTER").toUpperCase();
+        displayViewRange = config.getInt("display.view-range", 64);
 
-        // Sounds
         soundsEnabled = config.getBoolean("sounds.enabled", true);
-        countdownTick = loadSound("sounds.countdown-tick", Sound.BLOCK_NOTE_BLOCK_PLING);
-        countdownGo = loadSound("sounds.countdown-go", Sound.ENTITY_ENDER_DRAGON_GROWL);
-        itemCollected = loadSound("sounds.item-collected", Sound.ENTITY_PLAYER_LEVELUP);
-        skipUsed = loadSound("sounds.skip-used", Sound.ENTITY_VILLAGER_NO);
-        eventEnd = loadSound("sounds.event-end", Sound.UI_TOAST_CHALLENGE_COMPLETE);
+        countdownTick = loadSound("sounds.countdown-tick", "block.note_block.pling");
+        countdownGo = loadSound("sounds.countdown-go", "entity.ender_dragon.growl");
+        itemCollected = loadSound("sounds.item-collected", "entity.player.levelup");
+        skipUsed = loadSound("sounds.skip-used", "entity.villager.no");
+        eventEnd = loadSound("sounds.event-end", "ui.toast.challenge_complete");
 
-        // Starter Items
         loadStarterItems();
     }
 
@@ -100,12 +96,9 @@ public class ConfigManager {
         double z = config.getDouble("spawn.z", 0);
         float yaw = (float) config.getDouble("spawn.yaw", 0);
         float pitch = (float) config.getDouble("spawn.pitch", 0);
-
-        if (Bukkit.getWorld(worldName) != null) {
-            spawnLocation = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
-        } else {
-            spawnLocation = null;
-        }
+        spawnLocation = Bukkit.getWorld(worldName) != null
+            ? new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch)
+            : null;
     }
 
     public void saveSpawnLocation(Location location) {
@@ -119,19 +112,25 @@ public class ConfigManager {
         this.spawnLocation = location;
     }
 
-    private Sound loadSound(String path, Sound defaultSound) {
-        String soundName = config.getString(path, defaultSound.name());
-        try {
-            return Sound.valueOf(soundName.toUpperCase());
-        } catch (IllegalArgumentException e) {
+    private Sound loadSound(String path, String defaultKey) {
+        String soundName = config.getString(path, defaultKey);
+        Sound found = RegistryAccess.registryAccess()
+            .getRegistry(RegistryKey.SOUND_EVENT)
+            .get(NamespacedKey.minecraft(soundName.toLowerCase()));
+        if (found != null) return found;
+        Sound fallback = RegistryAccess.registryAccess()
+            .getRegistry(RegistryKey.SOUND_EVENT)
+            .get(NamespacedKey.minecraft(defaultKey));
+        if (fallback != null) {
             plugin.getLogger().warning("Ungültiger Sound: " + soundName + " - Verwende Standard");
-            return defaultSound;
+            return fallback;
         }
+        plugin.getLogger().severe("Auch Standard-Sound nicht gefunden: " + defaultKey);
+        return null;
     }
 
     private void loadStarterItems() {
         starterItems.clear();
-
         ConfigurationSection itemsSection = config.getConfigurationSection("starter-items");
         if (itemsSection == null) return;
 
@@ -149,37 +148,29 @@ public class ConfigManager {
                 Material material = Material.valueOf(materialName.toUpperCase());
                 ItemStack item = new ItemStack(material, amount);
                 ItemMeta meta = item.getItemMeta();
-
                 if (meta != null) {
                     if (displayName != null) {
-                        meta.displayName(ColorUtils.colorize(displayName));
+                        meta.displayName(ColorUtils.colorize(displayName)
+                            .decoration(TextDecoration.ITALIC, false));
                     }
-
-                    if (unbreakable) {
-                        meta.setUnbreakable(true);
-                    }
-
-                    // Enchantments laden
+                    if (unbreakable) meta.setUnbreakable(true);
                     if (itemSection.contains("enchantments")) {
                         for (String enchString : itemSection.getStringList("enchantments")) {
                             String[] parts = enchString.split(":");
                             if (parts.length == 2) {
                                 try {
-                                    Enchantment ench = Enchantment.getByName(parts[0].toUpperCase());
-                                    if (ench != null) {
-                                        int level = Integer.parseInt(parts[1]);
-                                        meta.addEnchant(ench, level, true);
-                                    }
+                                    Enchantment ench = RegistryAccess.registryAccess()
+                                        .getRegistry(RegistryKey.ENCHANTMENT)
+                                        .get(NamespacedKey.minecraft(parts[0].toLowerCase()));
+                                    if (ench != null) meta.addEnchant(ench, Integer.parseInt(parts[1]), true);
                                 } catch (Exception e) {
                                     plugin.getLogger().warning("Ungültiges Enchantment: " + enchString);
                                 }
                             }
                         }
                     }
-
                     item.setItemMeta(meta);
                 }
-
                 starterItems.put(slot, item);
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().warning("Ungültiges Material: " + materialName);
@@ -187,77 +178,26 @@ public class ConfigManager {
         }
     }
 
-    // Getter
+    public boolean isDisplayEnabled() { return displayEnabled; }
+    public double getDisplayHeight() { return displayHeight; }
+    public float getDisplayScale() { return displayScale; }
+    public String getDisplayBillboard() { return displayBillboard; }
+    public int getDisplayViewRange() { return displayViewRange; }
 
-    public String getColorPrimary() {
-        return colorPrimary;
-    }
-
-    public String getColorSecondary() {
-        return colorSecondary;
-    }
-
-    public String getColorSuccess() {
-        return colorSuccess;
-    }
-
-    public String getColorError() {
-        return colorError;
-    }
-
-    public int getEventDuration() {
-        return eventDuration;
-    }
-
-    public int getSkipsPerPlayer() {
-        return skipsPerPlayer;
-    }
-
-    public int getCountdownTime() {
-        return countdownTime;
-    }
-
-    public int getEndBorderRadius() {
-        return endBorderRadius;
-    }
-
-    public Location getSpawnLocation() {
-        return spawnLocation;
-    }
-
-    public double getHeightAboveHead() {
-        return heightAboveHead;
-    }
-
-    public String getActionbarFormat() {
-        return actionbarFormat;
-    }
-
-    public boolean isSoundsEnabled() {
-        return soundsEnabled;
-    }
-
-    public Sound getCountdownTick() {
-        return countdownTick;
-    }
-
-    public Sound getCountdownGo() {
-        return countdownGo;
-    }
-
-    public Sound getItemCollected() {
-        return itemCollected;
-    }
-
-    public Sound getSkipUsed() {
-        return skipUsed;
-    }
-
-    public Sound getEventEnd() {
-        return eventEnd;
-    }
-
-    public Map<Integer, ItemStack> getStarterItems() {
-        return new HashMap<>(starterItems);
-    }
+    public String getColorPrimary() { return colorPrimary; }
+    public String getColorSecondary() { return colorSecondary; }
+    public String getColorSuccess() { return colorSuccess; }
+    public String getColorError() { return colorError; }
+    public int getEventDuration() { return eventDuration; }
+    public int getSkipsPerPlayer() { return skipsPerPlayer; }
+    public int getCountdownTime() { return countdownTime; }
+    public int getEndBorderRadius() { return endBorderRadius; }
+    public Location getSpawnLocation() { return spawnLocation; }
+    public boolean isSoundsEnabled() { return soundsEnabled; }
+    public Sound getCountdownTick() { return countdownTick; }
+    public Sound getCountdownGo() { return countdownGo; }
+    public Sound getItemCollected() { return itemCollected; }
+    public Sound getSkipUsed() { return skipUsed; }
+    public Sound getEventEnd() { return eventEnd; }
+    public Map<Integer, ItemStack> getStarterItems() { return new HashMap<>(starterItems); }
 }

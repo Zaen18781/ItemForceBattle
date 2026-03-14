@@ -28,17 +28,29 @@ starter-items:
     unbreakable: true
     enchantments:
       - "SILK_TOUCH:1"
-    display-name: "<#478ED2>Starter Pickaxe"
+    display-name: "<#478ED2><b>ᴘɪᴄᴋᴀxᴇ"
   food:
     enabled: true
     slot: 7
     material: GOLDEN_CARROT
     amount: 64
-    display-name: "<#FFD700>Goldene Karotten"
+    display-name: "<#FFD700><b>ɢᴏʟᴅᴇɴᴇ ᴋᴀʀᴏᴛᴛᴇɴ"
+  joker:
+    enabled: true
+    slot: 8
+    material: BARRIER
+    amount: 1
+    unbreakable: true
+    display-name: "<red><b>ᴊᴏᴋᴇʀ"
 
 display:
+  enabled: true
   height-above-head: 1.0
-  actionbar-format: "<#478ED2>🎯 {item} <#6953B5>| <#478ED2>⏱ {time} <#6953B5>| <#00EE39>🏆 {points} Punkte"
+  scale: 0.6
+  # CENTER = dreht sich zur Kamera | FIXED = statisch | VERTICAL = nur Y-Achse | HORIZONTAL = nur horizontale Ebene
+  billboard: FIXED
+  view-range: 64
+  actionbar-format: "<#FFD700>🎯 <white>{item}"
 
 sounds:
   enabled: true

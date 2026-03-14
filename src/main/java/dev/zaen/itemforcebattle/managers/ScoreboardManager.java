@@ -1,10 +1,12 @@
 package dev.zaen.itemforcebattle.managers;
 
 import dev.zaen.itemforcebattle.BetterItemForceBattle;
-import dev.zaen.itemforcebattle.config.ConfigManager;
 import dev.zaen.itemforcebattle.config.ScoreboardConfig;
-import dev.zaen.itemforcebattle.utils.ColorUtils;
+import dev.zaen.itemforcebattle.utils.TextUtil;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.ShadowColor;
+import net.kyori.adventure.text.format.Style;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
@@ -13,211 +15,148 @@ import java.util.*;
 
 public class ScoreboardManager {
 
+    private static final String OBJ = "itemforce";
+
     private final BetterItemForceBattle plugin;
-    private final ConfigManager configManager;
-    private final ScoreboardConfig scoreboardConfig;
-    private final Map<UUID, Scoreboard> playerScoreboards;
+    private final ScoreboardConfig sbCfg;
+    private final Map<UUID, Scoreboard> boards = new HashMap<>();
+    private final Set<UUID> hidden = new HashSet<>();
 
     public ScoreboardManager(BetterItemForceBattle plugin) {
         this.plugin = plugin;
-        this.configManager = plugin.getConfigManager();
-        this.scoreboardConfig = plugin.getScoreboardConfig();
-        this.playerScoreboards = new HashMap<>();
+        this.sbCfg = plugin.getScoreboardConfig();
     }
 
-    /**
-     * Erstellt Scoreboards für alle Spieler im Spiel
-     */
     public void createScoreboards() {
-        for (UUID uuid : plugin.getGameManager().getAllPlayerData().keySet()) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                createScoreboard(player);
-            }
-        }
+        plugin.getGameManager().getAllPlayerData().keySet().forEach(uuid -> {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) createScoreboard(p);
+        });
     }
 
-    /**
-     * Erstellt ein Scoreboard für einen einzelnen Spieler
-     */
     public void createScoreboard(Player player) {
-        Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        Scoreboard sb = Bukkit.getScoreboardManager().getNewScoreboard();
+        boolean shadow = sbCfg.isTextShadowEnabled();
 
-        String title = scoreboardConfig.getTitle();
-        if (scoreboardConfig.isSmallCapsEnabled()) {
-            title = ColorUtils.toSmallCaps(title);
-        }
+        Component title = TextUtil.parse(sbCfg.getTitle());
+        if (shadow) title = withShadow(title);
 
-        Objective objective = scoreboard.registerNewObjective(
-            "itemforce",
-            Criteria.DUMMY,
-            ColorUtils.colorize(title)
-        );
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        Objective obj = sb.registerNewObjective(OBJ, Criteria.DUMMY, title);
+        obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        playerScoreboards.put(player.getUniqueId(), scoreboard);
-        player.setScoreboard(scoreboard);
-
+        boards.put(player.getUniqueId(), sb);
+        if (!isHidden(player)) player.setScoreboard(sb);
         updateScoreboard(player);
     }
 
-    /**
-     * Aktualisiert das Scoreboard eines Spielers
-     */
     public void updateScoreboard(Player player) {
-        Scoreboard scoreboard = playerScoreboards.get(player.getUniqueId());
-        if (scoreboard == null) return;
+        updateScoreboard(player, plugin.getGameManager().getSortedPlayers());
+    }
 
-        Objective objective = scoreboard.getObjective("itemforce");
-        if (objective == null) return;
+    private void updateScoreboard(Player player, List<Map.Entry<UUID, PlayerData>> sorted) {
+        if (isHidden(player)) return;
+        Scoreboard sb = boards.get(player.getUniqueId());
+        if (sb == null) return;
+        Objective obj = sb.getObjective(OBJ);
+        if (obj == null) return;
 
-        // Alle alten Einträge entfernen
-        for (String entry : new HashSet<>(scoreboard.getEntries())) {
-            scoreboard.resetScores(entry);
-        }
+        GameManager gm = plugin.getGameManager();
+        boolean shadow = sbCfg.isTextShadowEnabled();
+        List<String> cfgLines = sbCfg.getLines();
 
-        GameManager gameManager = plugin.getGameManager();
-        List<Map.Entry<UUID, PlayerData>> sortedPlayers = gameManager.getSortedPlayers();
-        int playerRank = gameManager.getPlayerRank(player.getUniqueId());
-        int playersAround = scoreboardConfig.getPlayersAround();
+        String time = gm.formatTime(gm.getRemainingSeconds());
+        PlayerData pd = gm.getPlayerData(player.getUniqueId());
+        int pts = pd != null ? pd.getPoints() : 0;
 
-        int line = 15;
-
-        // Leerzeile oben
-        setScore(objective, " ", line--);
-
-        // Zeit anzeigen (wenn aktiviert)
-        if (scoreboardConfig.isShowTime()) {
-            setScore(objective, "§b⏱ §7Zeit: §a" + gameManager.formatTime(gameManager.getRemainingSeconds()), line--);
-            // Leerzeile
-            setScore(objective, "  ", line--);
-        }
-
-        // Spieler anzeigen (3 über, eigener Spieler, 3 unter)
-        int startIndex = Math.max(0, playerRank - 1 - playersAround);
-        int endIndex = Math.min(sortedPlayers.size(), playerRank + playersAround);
-
-        // Anpassen wenn am Anfang oder Ende
-        if (playerRank <= playersAround) {
-            endIndex = Math.min(sortedPlayers.size(), playersAround * 2 + 1);
-        } else if (playerRank > sortedPlayers.size() - playersAround) {
-            startIndex = Math.max(0, sortedPlayers.size() - playersAround * 2 - 1);
-        }
-
-        for (int i = startIndex; i < endIndex && line > 1; i++) {
-            Map.Entry<UUID, PlayerData> entry = sortedPlayers.get(i);
-            Player p = Bukkit.getPlayer(entry.getKey());
-            String name = p != null ? p.getName() : "???";
-            int points = entry.getValue().getPoints();
-            int rank = i + 1;
-
-            String rankPrefix = getRankPrefix(rank);
-            boolean isOwnPlayer = entry.getKey().equals(player.getUniqueId());
-
-            String displayLine;
-            if (isOwnPlayer && scoreboardConfig.isHighlightOwn()) {
-                // Eigener Spieler hervorgehoben
-                displayLine = "§a▶ " + rankPrefix + rank + ". §a" + name + " §7- §a" + points;
+        int lineScore = cfgLines.size();
+        for (String raw : cfgLines) {
+            String processed;
+            if (raw.matches("#[1-9]")) {
+                int rank = Integer.parseInt(raw.substring(1));
+                int idx = rank - 1;
+                processed = idx < sorted.size()
+                    ? buildPlayerLine(rank, sorted.get(idx), player)
+                    : "<#478ED2>" + rank + ". <dark_gray>N/A";
             } else {
-                displayLine = "§7" + rankPrefix + rank + ". §f" + name + " §7- §a" + points;
+                processed = raw.replace("%time%", time).replace("%points%", String.valueOf(pts));
             }
-
-            // Kuerzen falls zu lang
-            if (displayLine.length() > 40) {
-                String shortName = name.length() > 10 ? name.substring(0, 10) + "..." : name;
-                if (isOwnPlayer && scoreboardConfig.isHighlightOwn()) {
-                    displayLine = "§a▶ " + rankPrefix + rank + ". §a" + shortName + " §7- §a" + points;
-                } else {
-                    displayLine = "§7" + rankPrefix + rank + ". §f" + shortName + " §7- §a" + points;
-                }
-            }
-
-            setScore(objective, displayLine, line--);
+            lineScore = setLine(sb, obj, lineScore, processed, shadow);
         }
-
-        // Leerzeile
-        setScore(objective, "   ", line--);
-
-        // Eigene Stats
-        PlayerData ownData = gameManager.getPlayerData(player.getUniqueId());
-        if (ownData != null) {
-            if (scoreboardConfig.isShowPoints()) {
-                setScore(objective, "§a🏆 §7Punkte: §a" + ownData.getPoints(), line--);
-            }
-            if (scoreboardConfig.isShowSkips()) {
-                setScore(objective, "§6⚡ §7Skips: §6" + ownData.getSkipsRemaining(), line--);
-            }
-        }
-
-        // Leerzeile unten
-        setScore(objective, "    ", line--);
     }
 
-    private String getRankPrefix(int rank) {
-        return switch (rank) {
-            case 1 -> "§6"; // Gold
-            case 2 -> "§7"; // Silber
-            case 3 -> "§c"; // Bronze/Kupfer
-            default -> "§8"; // Grau
-        };
+    private String buildPlayerLine(int rank, Map.Entry<UUID, PlayerData> entry, Player viewer) {
+        Player p = Bukkit.getPlayer(entry.getKey());
+        String name = p != null ? p.getName() : "???";
+        int pts = entry.getValue().getPoints();
+        return "<#478ED2>" + rank + ". <white>" + name + " <#FFD700>" + pts;
     }
 
-    private void setScore(Objective objective, String text, int score) {
-        // SmallCaps anwenden wenn aktiviert
-        if (scoreboardConfig.isSmallCapsEnabled()) {
-            text = ColorUtils.toSmallCaps(text);
+    private int setLine(Scoreboard sb, Objective obj, int score, String mm, boolean shadow) {
+        String teamName = "ifb_" + score;
+        Team team = sb.getTeam(teamName);
+        if (team == null) {
+            String entry = "\u00a7" + Integer.toHexString(score & 0xF);
+            while (sb.getEntries().contains(entry)) entry += " ";
+            team = sb.registerNewTeam(teamName);
+            team.addEntry(entry);
+            team.suffix(Component.empty());
+            var s = obj.getScore(entry);
+            s.setScore(score);
+            s.numberFormat(NumberFormat.blank());
         }
-
-        // Einzigartige Einträge sicherstellen
-        String uniqueText = text;
-        int attempts = 0;
-        while (objective.getScoreboard().getEntries().contains(uniqueText) && attempts < 16) {
-            uniqueText = text + "§" + Integer.toHexString(attempts);
-            attempts++;
-        }
-
-        // Text auf max. Länge kürzen
-        if (uniqueText.length() > 64) {
-            uniqueText = uniqueText.substring(0, 64);
-        }
-
-        Score scoreObj = objective.getScore(uniqueText);
-        scoreObj.setScore(score);
-
-        // Rote Zahlen entfernen (leeres Format)
-        scoreObj.numberFormat(NumberFormat.blank());
+        Component content = TextUtil.parse(mm);
+        if (shadow) content = withShadow(content);
+        team.prefix(content);
+        return score - 1;
     }
 
-    /**
-     * Aktualisiert alle Scoreboards
-     */
+    private Component withShadow(Component c) {
+        return c.style(c.style().merge(Style.style().shadowColor(ShadowColor.shadowColor(0xAA000000)).build()));
+    }
+
     public void updateAllScoreboards() {
-        for (UUID uuid : playerScoreboards.keySet()) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                updateScoreboard(player);
-            }
+        List<Map.Entry<UUID, PlayerData>> sorted = plugin.getGameManager().getSortedPlayers();
+        for (UUID uuid : new HashSet<>(boards.keySet())) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && !isHidden(p)) updateScoreboard(p, sorted);
         }
     }
 
-    /**
-     * Entfernt das Scoreboard eines Spielers
-     */
     public void removeScoreboard(Player player) {
-        playerScoreboards.remove(player.getUniqueId());
+        boards.remove(player.getUniqueId());
+        hidden.remove(player.getUniqueId());
         player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
 
-    /**
-     * Entfernt alle Scoreboards
-     */
     public void removeAllScoreboards() {
-        for (UUID uuid : new HashSet<>(playerScoreboards.keySet())) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-            }
+        for (UUID uuid : new HashSet<>(boards.keySet())) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
-        playerScoreboards.clear();
+        boards.clear();
+        hidden.clear();
+    }
+
+    public void toggleScoreboard(Player player) {
+        if (isHidden(player)) showScoreboard(player); else hideScoreboard(player);
+    }
+
+    public void showScoreboard(Player player) {
+        hidden.remove(player.getUniqueId());
+        Scoreboard sb = boards.get(player.getUniqueId());
+        if (sb != null) {
+            player.setScoreboard(sb);
+            player.sendMessage(plugin.getMessageManager().getScoreboardShown());
+        }
+    }
+
+    public void hideScoreboard(Player player) {
+        hidden.add(player.getUniqueId());
+        player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        player.sendMessage(plugin.getMessageManager().getScoreboardHidden());
+    }
+
+    public boolean isHidden(Player player) {
+        return hidden.contains(player.getUniqueId());
     }
 }

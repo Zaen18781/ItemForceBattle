@@ -4,53 +4,38 @@ import dev.zaen.itemforcebattle.BetterItemForceBattle;
 import dev.zaen.itemforcebattle.utils.ColorUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
 
 public class MessageManager {
 
     private final BetterItemForceBattle plugin;
-    private FileConfiguration config;
-
-    private boolean isSmallCapsEnabled() {
-        ScoreboardConfig scoreboardConfig = plugin.getScoreboardConfig();
-        return scoreboardConfig != null && scoreboardConfig.isSmallCapsEnabled();
-    }
-
-    private String applySmallCaps(String text) {
-        if (isSmallCapsEnabled()) {
-            return ColorUtils.toSmallCaps(text);
-        }
-        return text;
-    }
+    private FileConfiguration messagesConfig;
 
     private String prefix;
-
-    // Event Nachrichten
-    private String eventStarted;
-    private String eventStopped;
-    private String eventEnded;
-
-    // Countdown
-    private String countdown;
-    private String countdownGo;
-
-    // Item Nachrichten
-    private String newItem;
-    private String itemCollected;
-
-    // Skip Nachrichten
-    private String skipUsed;
-    private String noSkipsLeft;
-
-    // Fehler
+    private String playerOnly;
     private String noPermission;
     private String eventNotRunning;
     private String eventAlreadyRunning;
     private String spawnNotSet;
     private String spawnSet;
-
-    // Leaderboard
+    private String eventStarted;
+    private String eventStopped;
+    private String eventEnded;
+    private String countdownGo;
+    private String newItem;
+    private String itemCollected;
+    private String skipUsed;
+    private String noSkipsLeft;
+    private String playerAdded;
+    private String playerAddedSelf;
+    private String playerAlreadyInGame;
+    private String playerNotFound;
+    private String configReloaded;
+    private String scoreboardHidden;
+    private String scoreboardShown;
     private String leaderboardHeader;
-    private String leaderboardEntry;
     private String leaderboardFooter;
 
     public MessageManager(BetterItemForceBattle plugin) {
@@ -59,120 +44,87 @@ public class MessageManager {
     }
 
     public void reload() {
-        config = plugin.getConfig();
+        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+        if (!messagesFile.exists()) plugin.saveResource("messages.yml", false);
+        messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
 
-        prefix = config.getString("messages.prefix", "<#478ED2>[<#6953B5>ItemForce<#478ED2>] ");
-
-        eventStarted = config.getString("messages.event-started", "<#00EE39>Das Item Force Battle hat begonnen!");
-        eventStopped = config.getString("messages.event-stopped", "<#ff0000>Das Event wurde beendet!");
-        eventEnded = config.getString("messages.event-ended", "<#00EE39>Das Event ist vorbei! Hier sind die Ergebnisse:");
-
-        countdown = config.getString("messages.countdown", "<#478ED2>Start in <#00EE39>{seconds} <#478ED2>Sekunden...");
-        countdownGo = config.getString("messages.countdown-go", "<#00EE39><bold>LOS GEHT'S!");
-
-        newItem = config.getString("messages.new-item", "<#478ED2>Dein neues Item: <#00EE39>{item}");
-        itemCollected = config.getString("messages.item-collected", "<#00EE39>Du hast <#478ED2>{item} <#00EE39>gesammelt! <#6953B5>(+1 Punkt)");
-
-        skipUsed = config.getString("messages.skip-used", "<#6953B5>Du hast <#478ED2>{item} <#6953B5>geskippt! <#ff0000>({remaining} Skips übrig)");
-        noSkipsLeft = config.getString("messages.no-skips-left", "<#ff0000>Du hast keine Skips mehr übrig!");
-
-        noPermission = config.getString("messages.no-permission", "<#ff0000>Du hast keine Berechtigung für diesen Befehl!");
-        eventNotRunning = config.getString("messages.event-not-running", "<#ff0000>Es läuft gerade kein Event!");
-        eventAlreadyRunning = config.getString("messages.event-already-running", "<#ff0000>Es läuft bereits ein Event!");
-        spawnNotSet = config.getString("messages.spawn-not-set", "<#ff0000>Der Spawn wurde noch nicht gesetzt! Nutze /itemforce setspawn");
-        spawnSet = config.getString("messages.spawn-set", "<#00EE39>Spawn wurde gesetzt!");
-
-        leaderboardHeader = config.getString("messages.leaderboard-header", "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        leaderboardEntry = config.getString("messages.leaderboard-entry", "<#6953B5>{rank}. <#478ED2>{player} <#6953B5>- <#00EE39>{points} Punkte");
-        leaderboardFooter = config.getString("messages.leaderboard-footer", "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        prefix = messagesConfig.getString("prefix", "<#478ED2><b>ɪᴛᴇᴍʙᴀᴛᴛʟᴇ</b> <dark_gray>»</dark_gray> ");
+        playerOnly = messagesConfig.getString("player-only", "<#ff0000><b>❌</b> <white>ɴᴜʀ ғüʀ sᴘɪᴇʟᴇʀ!");
+        noPermission = messagesConfig.getString("no-permission", "<#ff0000><b>❌</b> <white>ᴋᴇɪɴᴇ ʙᴇʀᴇᴄʜᴛɪɢᴜɴɢ!");
+        eventNotRunning = messagesConfig.getString("event-not-running", "<#ff0000><b>❌</b> <white>ᴋᴇɪɴ ᴇᴠᴇɴᴛ ᴀᴋᴛɪᴠ!");
+        eventAlreadyRunning = messagesConfig.getString("event-already-running", "<#ff0000><b>❌</b> <white>ᴇᴠᴇɴᴛ ʟäᴜғᴛ ʙᴇʀᴇɪᴛs!");
+        spawnNotSet = messagesConfig.getString("spawn-not-set", "<#ff0000><b>❌</b> <white>sᴘᴀᴡɴ ɴɪᴄʜᴛ ɢᴇsᴇᴛᴢᴛ!");
+        spawnSet = messagesConfig.getString("spawn-set", "<#00EE39>✔ <white>sᴘᴀᴡɴ ɢᴇsᴇᴛᴢᴛ.");
+        eventStarted = messagesConfig.getString("event-started", "<#00EE39>✔ <white>ᴅᴀs ɪᴛᴇᴍ ʙᴀᴛᴛʟᴇ ʜᴀᴛ ʙᴇɢᴏɴɴᴇɴ!");
+        eventStopped = messagesConfig.getString("event-stopped", "<#ff0000><b>❌</b> <white>ᴅᴀs ᴇᴠᴇɴᴛ ᴡᴜʀᴅᴇ ʙᴇᴇɴᴅᴇᴛ!");
+        eventEnded = messagesConfig.getString("event-ended", "<#00EE39>✔ <white>ᴅᴀs ᴇᴠᴇɴᴛ ɪsᴛ ᴠᴏʀʙᴇɪ!");
+        countdownGo = messagesConfig.getString("countdown-go", "<#00EE39><b>ʟᴏs ɢᴇʜᴛs!");
+        newItem = messagesConfig.getString("new-item", "<#478ED2>🎯 <white>ᴅᴇɪɴ ɴᴇᴜᴇs ɪᴛᴇᴍ: <white>{item}");
+        itemCollected = messagesConfig.getString("item-collected", "<#00EE39>✔ <white>{item} <#00EE39>ɢᴇsᴀᴍᴍᴇʟᴛ! <#FFD700>(+1 ᴘᴜɴᴋᴛ)");
+        skipUsed = messagesConfig.getString("skip-used", "<#FFD700>● <white>{item} <#FFD700>ɢᴇsᴋɪᴘᴘᴛ! <#ff0000>({remaining} sᴋɪᴘs üʙʀɪɢ)");
+        noSkipsLeft = messagesConfig.getString("no-skips-left", "<#ff0000><b>❌</b> <white>ᴋᴇɪɴᴇ sᴋɪᴘs ᴍᴇʜʀ üʙʀɪɢ!");
+        playerAdded = messagesConfig.getString("player-added", "<#00EE39>✔ <white>{player} <#00EE39>ᴡᴜʀᴅᴇ ʜɪɴᴢᴜɢᴇғüɢᴛ.");
+        playerAddedSelf = messagesConfig.getString("player-added-self", "<#00EE39>✔ <white>ᴅᴜ ᴡᴜʀᴅᴇsᴛ ᴢᴜᴍ ɪᴛᴇᴍ ʙᴀᴛᴛʟᴇ ʜɪɴᴢᴜɢᴇғüɢᴛ!");
+        playerAlreadyInGame = messagesConfig.getString("player-already-in-game", "<#ff0000><b>❌</b> <white>sᴘɪᴇʟᴇʀ ɪsᴛ ʙᴇʀᴇɪᴛs ɪᴍ sᴘɪᴇʟ!");
+        playerNotFound = messagesConfig.getString("player-not-found", "<#ff0000><b>❌</b> <white>sᴘɪᴇʟᴇʀ <white>{player}</white> ɴɪᴄʜᴛ ɢᴇғᴜɴᴅᴇɴ!");
+        configReloaded = messagesConfig.getString("config-reloaded", "<#00EE39>✔ <white>ᴋᴏɴғɪɢ ɴᴇᴜ ɢᴇʟᴀᴅᴇɴ.");
+        scoreboardHidden = messagesConfig.getString("scoreboard-hidden", "<#FFD700>● <white>sᴄᴏʀᴇʙᴏᴀʀᴅ <#ff0000>ᴀᴜsɢᴇʙʟᴇɴᴅᴇᴛ.");
+        scoreboardShown = messagesConfig.getString("scoreboard-shown", "<#FFD700>● <white>sᴄᴏʀᴇʙᴏᴀʀᴅ <#00EE39>ᴀɴɢᴇᴢᴇɪɢᴛ.");
+        leaderboardHeader = messagesConfig.getString("leaderboard-header", "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        leaderboardFooter = messagesConfig.getString("leaderboard-footer", "<#478ED2>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
-    // Hilfsmethoden
-
-    public Component formatMessage(String message) {
-        return ColorUtils.colorize(applySmallCaps(prefix + message));
+    private boolean isSmallCapsEnabled() {
+        ScoreboardConfig cfg = plugin.getScoreboardConfig();
+        return cfg != null && cfg.isSmallCapsEnabled();
     }
 
-    public Component formatMessageNoPrefix(String message) {
-        return ColorUtils.colorize(applySmallCaps(message));
+    private String applySmallCaps(String text) {
+        return isSmallCapsEnabled() ? ColorUtils.toSmallCaps(text) : text;
     }
 
-    // Getter mit Platzhalter-Ersetzung
-
-    public Component getEventStarted() {
-        return formatMessage(eventStarted);
+    private Component fmt(String raw) {
+        return ColorUtils.colorize(applySmallCaps(raw));
     }
 
-    public Component getEventStopped() {
-        return formatMessage(eventStopped);
-    }
-
-    public Component getEventEnded() {
-        return formatMessage(eventEnded);
-    }
-
-    public Component getCountdown(int seconds) {
-        return formatMessage(ColorUtils.replacePlaceholders(countdown, "{seconds}", String.valueOf(seconds)));
-    }
-
-    public Component getCountdownGo() {
-        return formatMessage(countdownGo);
-    }
+    public Component getPlayerOnly() { return fmt(playerOnly); }
+    public Component getNoPermission() { return fmt(noPermission); }
+    public Component getEventNotRunning() { return fmt(eventNotRunning); }
+    public Component getEventAlreadyRunning() { return fmt(eventAlreadyRunning); }
+    public Component getSpawnNotSet() { return fmt(spawnNotSet); }
+    public Component getSpawnSet() { return fmt(spawnSet); }
+    public Component getEventStarted() { return fmt(eventStarted); }
+    public Component getEventStopped() { return fmt(eventStopped); }
+    public Component getEventEnded() { return fmt(eventEnded); }
+    public Component getCountdownGo() { return fmt(countdownGo); }
+    public Component getNoSkipsLeft() { return fmt(noSkipsLeft); }
+    public Component getPlayerAddedSelf() { return fmt(playerAddedSelf); }
+    public Component getPlayerAlreadyInGame() { return fmt(playerAlreadyInGame); }
+    public Component getConfigReloaded() { return fmt(configReloaded); }
+    public Component getScoreboardHidden() { return fmt(scoreboardHidden); }
+    public Component getScoreboardShown() { return fmt(scoreboardShown); }
+    public Component getLeaderboardHeader() { return fmt(leaderboardHeader); }
+    public Component getLeaderboardFooter() { return fmt(leaderboardFooter); }
 
     public Component getNewItem(String itemName) {
-        return formatMessage(ColorUtils.replacePlaceholders(newItem, "{item}", itemName));
+        return fmt(ColorUtils.replacePlaceholders(newItem, "{item}", itemName));
     }
 
     public Component getItemCollected(String itemName) {
-        return formatMessage(ColorUtils.replacePlaceholders(itemCollected, "{item}", itemName));
+        return fmt(ColorUtils.replacePlaceholders(itemCollected, "{item}", itemName));
     }
 
     public Component getSkipUsed(String itemName, int remaining) {
-        return formatMessage(ColorUtils.replacePlaceholders(skipUsed, 
-            "{item}", itemName, 
-            "{remaining}", String.valueOf(remaining)));
+        return fmt(ColorUtils.replacePlaceholders(skipUsed, "{item}", itemName, "{remaining}", String.valueOf(remaining)));
     }
 
-    public Component getNoSkipsLeft() {
-        return formatMessage(noSkipsLeft);
+    public Component getPlayerAdded(String playerName) {
+        return fmt(ColorUtils.replacePlaceholders(playerAdded, "{player}", playerName));
     }
 
-    public Component getNoPermission() {
-        return formatMessage(noPermission);
+    public Component getPlayerNotFound(String playerName) {
+        return fmt(ColorUtils.replacePlaceholders(playerNotFound, "{player}", playerName));
     }
 
-    public Component getEventNotRunning() {
-        return formatMessage(eventNotRunning);
-    }
-
-    public Component getEventAlreadyRunning() {
-        return formatMessage(eventAlreadyRunning);
-    }
-
-    public Component getSpawnNotSet() {
-        return formatMessage(spawnNotSet);
-    }
-
-    public Component getSpawnSet() {
-        return formatMessage(spawnSet);
-    }
-
-    public Component getLeaderboardHeader() {
-        return formatMessageNoPrefix(leaderboardHeader);
-    }
-
-    public Component getLeaderboardEntry(int rank, String player, int points) {
-        return formatMessageNoPrefix(ColorUtils.replacePlaceholders(leaderboardEntry,
-            "{rank}", String.valueOf(rank),
-            "{player}", player,
-            "{points}", String.valueOf(points)));
-    }
-
-    public Component getLeaderboardFooter() {
-        return formatMessageNoPrefix(leaderboardFooter);
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
+    public String getPrefix() { return prefix; }
 }

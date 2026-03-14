@@ -46,7 +46,6 @@ public class SkipCommand implements CommandExecutor {
             return true;
         }
 
-        // Skip verwenden
         gameManager.useSkip(player);
 
         return true;
