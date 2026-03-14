@@ -54,11 +54,11 @@ display:
 
 sounds:
   enabled: true
-  countdown-tick: "BLOCK_NOTE_BLOCK_PLING"
-  countdown-go: "ENTITY_ENDER_DRAGON_GROWL"
-  item-collected: "ENTITY_PLAYER_LEVELUP"
-  skip-used: "ENTITY_VILLAGER_NO"
-  event-end: "UI_TOAST_CHALLENGE_COMPLETE"
+  countdown-tick: "block.note_block.pling"
+  countdown-go: "entity.ender_dragon.growl"
+  item-collected: "entity.player.levelup"
+  skip-used: "entity.villager.no"
+  event-end: "ui.toast.challenge_complete"
 
 messages:
   prefix: "<#478ED2>[<#6953B5>ItemForce<#478ED2>] "

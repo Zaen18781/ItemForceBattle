@@ -4,6 +4,8 @@ import dev.zaen.itemforcebattle.BetterItemForceBattle;
 import dev.zaen.itemforcebattle.config.ConfigManager;
 import dev.zaen.itemforcebattle.config.MessageManager;
 import dev.zaen.itemforcebattle.utils.ColorUtils;
+import dev.zaen.itemforcebattle.utils.Colors;
+import dev.zaen.itemforcebattle.utils.Unicodes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
@@ -71,8 +73,8 @@ public class GameManager {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (!playerDataMap.containsKey(player.getUniqueId())) continue;
                         player.showTitle(Title.title(
-                            ColorUtils.colorize(configManager.getColorPrimary() + String.valueOf(countdown)),
-                            Component.empty(),
+                            ColorUtils.colorize(Colors.BLUE.getHex() + "<b>sᴘɪᴇʟ sᴛᴀʀᴛᴇᴛ ɪɴ:</b></color>"),
+                            ColorUtils.colorize("<white><b>" + countdown + "</b></white>"),
                             Title.Times.times(Duration.ZERO, Duration.ofMillis(1100), Duration.ZERO)
                         ));
                         if (configManager.isSoundsEnabled()) {
@@ -256,33 +258,43 @@ public class GameManager {
             .sorted((a, b) -> Integer.compare(b.getValue().getPoints(), a.getValue().getPoints()))
             .collect(Collectors.toList());
 
-        boolean smallCaps = plugin.getScoreboardConfig().isSmallCapsEnabled();
+        String b = Colors.BLUE.getHex();
+        String y = Colors.YELLOW.getHex();
+        String dot = Unicodes.ROUND_DOT.getString();
+        String sep = b + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</color>";
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Component.empty());
-            player.sendMessage(messageManager.getLeaderboardHeader());
-            player.sendMessage(messageManager.getEventEnded());
+            player.sendMessage(ColorUtils.colorize(sep));
+            player.sendMessage(ColorUtils.colorize(
+                "  <b>" + b + "ɪᴛᴇᴍ</color><grey>ʙᴀᴛᴛʟᴇ</grey></b> <dark_gray>" + Unicodes.ARROW.getString() + "</dark_gray> " + y + "ᴇʀɢᴇʙɴɪssᴇ</color>"));
+            player.sendMessage(ColorUtils.colorize(sep));
             player.sendMessage(Component.empty());
 
-            int rank = 1;
-            for (Map.Entry<UUID, PlayerData> entry : sorted) {
-                Player p = Bukkit.getPlayer(entry.getKey());
-                String name = p != null ? p.getName() : "Unbekannt";
-                int points = entry.getValue().getPoints();
-                String prefix = switch (rank) {
-                    case 1 -> "<#FFD700>\uD83E\uDD47 ";
-                    case 2 -> "<#C0C0C0>\uD83E\uDD48 ";
-                    case 3 -> "<#CD7F32>\uD83E\uDD49 ";
-                    default -> "<#478ED2>";
-                };
-                String line = prefix + rank + ". " + name + " <#6953B5>- <#00EE39>" + points + " Punkte";
-                if (smallCaps) line = ColorUtils.toSmallCaps(line);
-                player.sendMessage(ColorUtils.colorize(line));
-                rank++;
+            if (sorted.isEmpty()) {
+                player.sendMessage(ColorUtils.colorize("<grey>  ᴋᴇɪɴᴇ sᴘɪᴇʟᴇʀᴅᴀᴛᴇɴ.</grey>"));
+            } else {
+                int rank = 1;
+                for (Map.Entry<UUID, PlayerData> entry : sorted) {
+                    Player p = Bukkit.getPlayer(entry.getKey());
+                    String name = ColorUtils.toSmallCaps(p != null ? p.getName() : "Unbekannt");
+                    int points = entry.getValue().getPoints();
+                    String ptsLabel = ColorUtils.toSmallCaps("Punkte");
+
+                    String line = switch (rank) {
+                        case 1 -> "  <#FFD700>\uD83E\uDD47 <white><b>" + name + "</b></white> <dark_gray>" + Unicodes.ARROW.getString() + "</dark_gray> <#FFD700>" + points + " <grey>" + ptsLabel + "</grey></color>";
+                        case 2 -> "  <#C0C0C0>\uD83E\uDD48 <white><b>" + name + "</b></white> <dark_gray>" + Unicodes.ARROW.getString() + "</dark_gray> <#C0C0C0>" + points + " <grey>" + ptsLabel + "</grey></color>";
+                        case 3 -> "  <#CD7F32>\uD83E\uDD49 <white><b>" + name + "</b></white> <dark_gray>" + Unicodes.ARROW.getString() + "</dark_gray> <#CD7F32>" + points + " <grey>" + ptsLabel + "</grey></color>";
+                        default -> "  <grey>" + b + dot + "</color> " + rank + ". <white>" + name + "</white> <dark_gray>" + Unicodes.ARROW.getString() + "</dark_gray> " + b + points + "</color> <grey>" + ptsLabel + "</grey>";
+                    };
+                    player.sendMessage(ColorUtils.colorize(line));
+                    rank++;
+                }
             }
 
             player.sendMessage(Component.empty());
-            player.sendMessage(messageManager.getLeaderboardFooter());
+            player.sendMessage(ColorUtils.colorize(sep));
+            player.sendMessage(Component.empty());
         }
     }
 

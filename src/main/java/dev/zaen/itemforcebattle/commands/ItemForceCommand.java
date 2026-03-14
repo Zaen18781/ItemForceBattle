@@ -3,7 +3,9 @@ package dev.zaen.itemforcebattle.commands;
 import dev.zaen.itemforcebattle.BetterItemForceBattle;
 import dev.zaen.itemforcebattle.config.MessageManager;
 import dev.zaen.itemforcebattle.managers.GameManager;
+import dev.zaen.itemforcebattle.utils.Colors;
 import dev.zaen.itemforcebattle.utils.TextUtil;
+import dev.zaen.itemforcebattle.utils.Unicodes;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -19,7 +21,7 @@ import java.util.List;
 
 public class ItemForceCommand implements CommandExecutor, TabCompleter {
 
-    private static final String SEP = "<#478ED2>●&m                                    &r<#478ED2>●";
+    private static final String SEP = Colors.BLUE.getHex() + Unicodes.ROUND_DOT.getString() + "&m                                    &r</color>" + Colors.BLUE.getHex() + Unicodes.ROUND_DOT.getString() + "</color>";
 
     private final BetterItemForceBattle plugin;
     private final MessageManager messageManager;
@@ -105,17 +107,20 @@ public class ItemForceCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
+        String b = Colors.BLUE.getHex();
+        String dot = Unicodes.ROUND_DOT.getString();
+        String arrow = Unicodes.ARROW.getString();
         sender.sendMessage(TextUtil.parse(SEP));
-        sender.sendMessage(TextUtil.parse(" <#C539EC><b>ɪᴛᴇᴍꜰᴏʀᴄᴇʙᴀᴛᴛʟᴇ</b> <dark_gray>» <white>ʜɪʟꜰᴇ"));
+        sender.sendMessage(TextUtil.parse(" " + b + "<b>ɪᴛᴇᴍ</b></color><grey><b>ʙᴀᴛᴛʟᴇ</b></grey> <dark_gray>" + arrow + " <white>ʜɪʟꜰᴇ</white>"));
         sender.sendMessage(TextUtil.parse(SEP));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce start <dark_gray>→ <gray>sᴛᴀʀᴛᴇᴛ ᴅᴀs ᴇᴠᴇɴᴛ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce stop <dark_gray>→ <gray>sᴛᴏᴘᴘᴛ ᴅᴀs ᴇᴠᴇɴᴛ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce setspawn <dark_gray>→ <gray>sᴇᴛᴢᴛ ᴅᴇɴ sᴘᴀᴡɴ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce addplayer <gray><Spieler> <dark_gray>→ <gray>ꜰüɢᴛ sᴘɪᴇʟᴇʀ ʜɪɴᴢᴜ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce gui <dark_gray>→ <gray>öꜰꜰɴᴇᴛ ᴅɪᴇ sᴘɪᴇʟᴇʀʟɪsᴛᴇ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/itemforce reload <dark_gray>→ <gray>ʟäᴅᴛ ᴅɪᴇ ᴋᴏɴғɪɢ ɴᴇᴜ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/sb <dark_gray>→ <gray>sᴄᴏʀᴇʙᴏᴀʀᴅ ᴇɪɴ/ᴀᴜsʙʟᴇɴᴅᴇɴ"));
-        sender.sendMessage(TextUtil.parse("<#478ED2>▎ <white>/skip <dark_gray>→ <gray>ᴀᴋᴛᴜᴇʟʟᴇs ɪᴛᴇᴍ üʙᴇʀsᴘʀɪɴɢᴇɴ"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce start</white> <dark_gray>" + arrow + "</dark_gray> <grey>sᴛᴀʀᴛᴇᴛ ᴅᴀs ᴇᴠᴇɴᴛ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce stop</white> <dark_gray>" + arrow + "</dark_gray> <grey>sᴛᴏᴘᴘᴛ ᴅᴀs ᴇᴠᴇɴᴛ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce setspawn</white> <dark_gray>" + arrow + "</dark_gray> <grey>sᴇᴛᴢᴛ ᴅᴇɴ sᴘᴀᴡɴ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce addplayer <" + b + "Spieler</color>></white> <dark_gray>" + arrow + "</dark_gray> <grey>ꜰüɢᴛ sᴘɪᴇʟᴇʀ ʜɪɴᴢᴜ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce gui</white> <dark_gray>" + arrow + "</dark_gray> <grey>öꜰꜰɴᴇᴛ ᴅɪᴇ sᴘɪᴇʟᴇʀʟɪsᴛᴇ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/itemforce reload</white> <dark_gray>" + arrow + "</dark_gray> <grey>ʟäᴅᴛ ᴅɪᴇ ᴋᴏɴꜰɪɢ ɴᴇᴜ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/sb</white> <dark_gray>" + arrow + "</dark_gray> <grey>sᴄᴏʀᴇʙᴏᴀʀᴅ ᴇɪɴ/ᴀᴜsʙʟᴇɴᴅᴇɴ</grey>"));
+        sender.sendMessage(TextUtil.parse("<grey>" + b + dot + "</color> <white>/skip</white> <dark_gray>" + arrow + "</dark_gray> <grey>ᴀᴋᴛᴜᴇʟʟᴇs ɪᴛᴇᴍ üʙᴇʀsᴘʀɪɴɢᴇɴ</grey>"));
         sender.sendMessage(TextUtil.parse(SEP));
     }
 
