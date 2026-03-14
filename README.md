@@ -1,7 +1,7 @@
 # 🎮 BetterItemForceBattle
 
 > Ein kompetitives **Item Force Battle** Plugin für PaperMC 1.21.4+, inspiriert von **BastiGHG**.
-> Spieler sammeln zufällig zugewiesene Items, kämpfen um Punkte und krönen den besten Sammler! 🏆
+> Spieler sammeln zufällig zugewiesene Items, kämpfen um Punkte und ehere den besten Spieler! 🏆
 
 ---
 
